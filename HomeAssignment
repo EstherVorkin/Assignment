@@ -38,4 +38,7 @@ def solve2():
 
   result = inCSV.over_window(Over.partition_by(col(0)).order_by(col(1)).preceding(lit(1).minutes).alias("w"))
 
-  result.execute_insert("homeAssignmentSol.csv")  
+  result.execute_insert("homeAssignmentSol.csv")
+  result.write_csv("homeAssignmentSol.csv", line_delimiter="\n", field_delimiter="|")
+
+  t_env.execute()
