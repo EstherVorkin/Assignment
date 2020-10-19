@@ -21,24 +21,31 @@ from flink.plan.Environment import get_environment
 from flink.functions.GroupReduceFunction import GroupReduceFunction
 from pyflink.table import *
 
+
 def solve2():
 #the hard way
+
   from flink.plan.Environment import get_environment
   from flink.functions.GroupReduceFunction import GroupReduceFunction
   from pyflink.table import *
 
-  t_env = BatchTableEnvironment.create(
+  env = BatchTableEnvironment.create(
       environment_settings=EnvironmentSettings.new_instance().in_batch_mode().use_blink_planner().build())
 
 
+  dataRead = env.read_csv("homeAssignment.csv", (int, int))
 
-  dataRead = t_env.read_csv("homeAssignment.csv", (int, int))
-
-  inCSV = t_env.from_path("homeAssignment.csv").select(col(0), col(1))
+  inCSV = env.from_path("homeAssignment.csv").select(col(0), col(1))
 
   result = inCSV.over_window(Over.partition_by(col(0)).order_by(col(1)).preceding(lit(1).minutes).alias("w"))
 
-  result.execute_insert("homeAssignmentSol.csv")
+  result.write_text("homeAssignmentSol.csv")
   result.write_csv("homeAssignmentSol.csv", line_delimiter="\n", field_delimiter="|")
+  result.output()
 
-  t_env.execute()
+  end.execute()
+  
+  
+if __name__ == "__main__":
+  solve1()
+  #solve2()
