@@ -1,0 +1,41 @@
+
+import os
+import csv
+import sys
+from operator import attrgetter
+
+def solve1():
+#the regular way to solve it
+  with open('homeAssignment.csv', 'r', newline='') as csv_file:
+      csv_reader = csv.reader(csv_file, delimiter=',')
+      sortedlist = sorted(csv_reader, key = lambda x: (x[0], x[1]))
+
+      for row in sortedlist:
+          print(row)
+
+      writer = csv.writer(open("homeAssignmentSol.csv", 'w', newline=''))
+      for row in sortedlist:
+          writer.writerow(row)
+          
+from flink.plan.Environment import get_environment
+from flink.functions.GroupReduceFunction import GroupReduceFunction
+from pyflink.table import *
+
+def solve2():
+#the hard way
+  from flink.plan.Environment import get_environment
+  from flink.functions.GroupReduceFunction import GroupReduceFunction
+  from pyflink.table import *
+
+  t_env = BatchTableEnvironment.create(
+      environment_settings=EnvironmentSettings.new_instance().in_batch_mode().use_blink_planner().build())
+
+
+
+  dataRead = t_env.read_csv("homeAssignment.csv", (int, int))
+
+  inCSV = t_env.from_path("homeAssignment.csv").select(col(0), col(1))
+
+  result = inCSV.over_window(Over.partition_by(col(0)).order_by(col(1)).preceding(lit(1).minutes).alias("w"))
+
+  result.execute_insert("homeAssignmentSol.csv")  
